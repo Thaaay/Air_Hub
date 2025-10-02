@@ -1,137 +1,183 @@
-import 'package:air_hub_social/screens/Register_page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:air_hub_social/screens/home_page/home_page.dart';
-import 'package:air_hub_social/screens/cadastro_new/cadastro_new_user.dart';
-
+import 'package:air_hub_social/screens/forgot_pass/Forgot_pass.dart'; // ajuste o caminho se necessário
 
 
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
-  _SignUpPageState createState() => _SignUpPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
 
   @override
+  void dispose() {
+    emailController.dispose();
+    senhaController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // Gradiente
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFF0F2027),
-                  Color(0xFF203A43),
-                  Color(0xFF2C5364),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.flight_takeoff, size: 80, color: Colors.white),
-                  const SizedBox(height: 20),
-                  const Text('Bem-vindo a bordo!',
-                    style: TextStyle(fontSize: 26, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 30),
+      backgroundColor: Colors.white, // fundo branco como FB
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const Icon(Icons.flight_takeoff,
+                    size: 60, color: Colors.blue), // ícone simples
+                const SizedBox(height: 16),
+                const Text(
+                  'Bem-vindo!',
+                  style: TextStyle(
+                      fontSize: 22,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 10),
 
-                  // Email
-                  TextField(
+                // Email
+                SizedBox(
+                  width: 350, // largura da caixa
+                  child: _buildInputField(
                     controller: emailController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'E-mail',
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      prefixIcon: const Icon(Icons.email, color: Colors.white),
-                      filled: true,
-                      fillColor: Colors.white10,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide.none),
-                    ),
+                    label: "E-mail",
+                    icon: Icons.email,
+                    validator: (value) =>
+                    value == null || value.isEmpty ? "Digite seu e-mail" : null,
                   ),
-                  const SizedBox(height: 20),
+                ),
 
-                  // Senha
-                  TextField(
+                const SizedBox(height: 10),
+
+                // Senha
+                SizedBox(
+                  width: 350, // largura da caixa
+                  child: _buildInputField(
                     controller: senhaController,
-                    obscureText: true,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Senha',
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      prefixIcon: const Icon(Icons.lock, color: Colors.white),
-                      filled: true,
-                      fillColor: Colors.white10,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide.none),
+                    label: "Senha",
+                    icon: Icons.lock_open_rounded,
+                    validator: (value) =>
+                    value == null || value.isEmpty ? "Digite seu e-mail" : null,
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Botão Login
+              SizedBox(
+                width: 150, // largura total
+                height: 30,
+                // altura do botão
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue, // botão azul FB
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
+                    elevation: 0, // remove sombra
                   ),
-                  const SizedBox(height: 20),
-
-                  // Botão login (aqui você pode colocar lógica de login também)
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => HomePage()),
-                      );
-                    },
-
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.lightBlueAccent,
-                      padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                    ),
-                    child: const Text('Entrar', style: TextStyle(fontSize: 18)),
-                  ),
-
-                  const SizedBox(height: 15),
-                  TextButton(
-                    onPressed: () {
-                      // ação de esqueci senha
-                    },
-                    child: const Text('Esqueci minha senha', style: TextStyle(color: Colors.white70)),
-                  ),
-
-                  TextButton(
-                    onPressed: () async {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => SignUpPage()),
-                      );
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
                       try {
-                        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                        await FirebaseAuth.instance.signInWithEmailAndPassword(
                           email: emailController.text.trim(),
                           password: senhaController.text.trim(),
                         );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Usuário registrado com sucesso')),
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => HomePage()),
                         );
-                        Navigator.pop(context); // volta para login
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Erro ao registrar: $e')),
+                          SnackBar(content: Text("Erro ao logar: $e")),
                         );
                       }
-                    },
-                    child: const Text('Criar nova conta', style: TextStyle(color: Colors.white70)),
+                    }
+                  },
+                  child: const Text(
+                    "Entrar",
+                    style: TextStyle(fontSize: 18, color: Colors.white), // aumenta fonte tbm
                   ),
-                ],
+                ),
               ),
+
+              const SizedBox(height: 12),
+
+                // Links
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PasswordResetPage(),
+                          ),
+                        );
+                      },
+
+                      child: const Text(
+                        "Esqueci minha senha",
+                        style: TextStyle(color: Colors.blue, fontSize: 12),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // Criar conta
+                      },
+                      child: const Text(
+                        "Criar nova conta",
+                        style: TextStyle(color: Colors.blue, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    String? Function(String?)? validator,
+    bool obscure = false,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
+      validator: validator,
+      style: const TextStyle(color: Colors.black87, fontSize: 14),
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon, color: Colors.grey, size: 18),
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+        filled: true,
+        fillColor: Colors.grey.shade200,
+        isDense: true,
+        contentPadding:
+        const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+        errorStyle: const TextStyle(
+          color: Colors.redAccent,
+          fontSize: 11,
+        ),
       ),
     );
   }
