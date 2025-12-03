@@ -44,7 +44,7 @@ Provider / Riverpod (to be defined)
 
 1. Clone the repository
 
-git clone https://github.com/SEU-USUARIO/aviation-social-app.git
+git clone 
 cd aviation-social-app
 
 2. Install dependencies
